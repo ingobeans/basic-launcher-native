@@ -26,7 +26,7 @@ class Window:
             now = datetime.datetime.now()
             time_delta = (now - self.last_frame).total_seconds()
             self.last_frame = now
-            print(f"FPS: {round(1/time_delta)}")
+            #print(f"FPS: {round(1/time_delta)}")
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
