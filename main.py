@@ -37,7 +37,7 @@ class Window:
         self.ui_manager = pygame_gui.UIManager([1196, 675])
         pygame.display.set_caption("Basic Launcher")
         self.clock = pygame.time.Clock()
-
+        self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.screen.get_rect(),self.ui_manager)
         self.buttons = []
         self.corners_image = pygame.image.load("assets/corners.png")
         self.font = pygame.font.SysFont("Arial",16)
@@ -95,7 +95,7 @@ class Window:
             button[0].set_position(self.calc_button_pos(index))
 
     def create_game_button(self, game:sources.game.Game):
-        button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager)
+        button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager,container=self.scrollbox)
         return button
 
     def add_game_button(self, game:sources.game.Game):
