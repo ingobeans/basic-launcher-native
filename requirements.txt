@@ -1,0 +1,23 @@
+altgraph>=0.17.4
+bottle>=0.12.25
+bottle-websocket>=0.2.9
+cffi>=1.16.0
+Eel>=0.17.0
+future>=1.0.0
+gevent>=24.2.1
+gevent-websocket>=0.10.1
+greenlet>=3.0.3
+json_repair>=0.25.3
+packaging>=24.1
+pefile>=2023.2.7
+pillow>=10.4.0
+pip-review>=1.3.0
+pycparser>=2.22
+pyparsing>=3.1.2
+pywin32>=306; platform_system == "Windows"
+pywin32-ctypes>=0.2.2; platform_system == "Windows"
+setuptools>=71.1.0
+vdf>=3.4
+whichcraft>=0.6.1
+zope.event>=5.0
+zope.interface>=6.4.post2
