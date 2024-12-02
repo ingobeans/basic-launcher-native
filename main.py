@@ -1,5 +1,3 @@
-import pygame_gui.elements.ui_button
-import pygame_gui.ui_manager
 import sources, os, base64, sys, shutil, pygame, pygame_gui
 
 games = []
@@ -42,6 +40,7 @@ class Window:
 
         self.buttons = []
         self.corners_image = pygame.image.load("assets/corners.png")
+        self.font = pygame.font.SysFont("Arial",16)
 
         self.card_width = 150
         self.card_height = 257
@@ -76,10 +75,12 @@ class Window:
     def draw_buttons(self):
         for button,game,artwork in self.buttons:
             card = pygame.Surface((button.rect[2],button.rect[3]))
-            #pygame.draw.rect(self.screen,(255,255,255),button.rect,1)
             card.fill(self.card_color)
             if artwork:
                 card.blit(artwork)
+            
+            text = self.font.render(game.name,True,(255,255,255))
+            card.blit(text,((self.card_width - text.width) / 2,225+5))
             card.blit(self.corners_image)
             self.screen.blit(card,button.rect)
 
