@@ -10,6 +10,7 @@ class Window:
         self.ui_manager = pygame_gui.UIManager([1196, 675])
         pygame.display.set_caption("Basic Launcher")
         self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.screen.get_rect(),self.ui_manager)
+        self.scrollbox.vert_scroll_bar.scroll_wheel_speed = 240
         self.buttons = []
         self.corners_image = pygame.image.load("assets/corners.png")
         self.font = pygame.font.SysFont("Arial",16)
