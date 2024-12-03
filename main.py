@@ -25,6 +25,13 @@ class Window:
         
         self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.get_scrollbox_rect(),self.ui_manager)
         self.scrollbox.vert_scroll_bar.scroll_wheel_speed = 240
+        self.scroll_to(-self.padding_y)
+
+    def scroll_to(self, target):
+        self.scrollbox.vert_scroll_bar.scroll_position = target
+        self.scrollbox.vert_scroll_bar.target_scroll_position = target
+        self.scrollbox.vert_scroll_bar.start_percentage = self.scrollbox.vert_scroll_bar.scroll_position / self.scrollbox.vert_scroll_bar.scrollable_height
+        self.scrollbox.vert_scroll_bar.has_moved_recently = True
     
     def get_scrollbox_rect(self):
         scrollbox_rect = self.screen.get_rect().copy()
