@@ -3,7 +3,7 @@ from . import source
 from . import game
 from PIL import Image
 if config.get_system() == "Windows":
-    import win32api, win32ui, win32com, win32gui, win32con
+    import win32api, win32ui, win32gui, win32con
 
 class Raw(source.Source):
     name:str = "raw"

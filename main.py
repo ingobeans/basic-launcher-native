@@ -1,4 +1,4 @@
-import sources, pygame, pygame_gui, datetime, os, sys
+import sources, pygame, pygame_gui, datetime, os, sys, config
 
 def real_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -11,6 +11,11 @@ class Window:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)#|pygame.NOFRAME)
+
+        if config.get_system() == "Windows":
+            import dark_titlebar
+            dark_titlebar.make_title_bar_dark(pygame.display.get_wm_info()["window"])
+        
         self.running = False
         self.background_color = (25,25,27)
         self.card_color = (61,61,67)
