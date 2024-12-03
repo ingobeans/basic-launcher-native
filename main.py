@@ -1,5 +1,7 @@
 import sources, pygame, datetime, os, sys, config
 
+version = "1.2.0"
+
 def real_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, os.path.join("assets", relative_path))
@@ -166,7 +168,9 @@ class Window:
         
         self.buttons.append(card)
 
-window = Window()
-for game in sources.get_games():
-    window.add_game_button(game)
-window.run()
+if __name__ == "__main__":
+    print(f"basic-launcher {version}")
+    window = Window()
+    for game in sources.get_games():
+        window.add_game_button(game)
+    window.run()
