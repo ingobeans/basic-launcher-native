@@ -1,4 +1,11 @@
-import sources, pygame, pygame_gui, datetime
+import sources, pygame, pygame_gui, datetime, os, sys
+
+def real_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, os.path.join("assets", relative_path))
+    return os.path.join("assets", relative_path)
+
+asset_corners = real_path("corners.png")
 
 class Window:
     def __init__(self):
@@ -11,7 +18,7 @@ class Window:
         pygame.display.set_caption("Basic Launcher")
 
         self.buttons = []
-        self.corners_image = pygame.image.load("assets/corners.png")
+        self.corners_image = pygame.image.load(asset_corners)
         self.card_font = pygame.font.SysFont("Arial",16)
         self.header_font = pygame.font.SysFont("Arial",32,bold=True)
 
