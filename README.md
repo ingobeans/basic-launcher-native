@@ -14,4 +14,4 @@ pygame is easy to build, and has **native controller support**, which is and was
 
 ## build
 
-build with pyinstaller with: `python -m PyInstaller main.py --add-data assets;assets --onefile --noconsole`
+build with pyinstaller with: `python -m PyInstaller main.py --add-data assets;assets --onefile --noconsole -n basic-launcher.exe`
