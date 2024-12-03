@@ -6,24 +6,33 @@ def real_path(relative_path):
     return os.path.join("assets", relative_path)
 
 asset_corners = real_path("corners.png")
+asset_glow = real_path("glow.png")
 
 class Card:
     def __init__(self, game, position, size, card_color, corners_image, card_font):
-        self.surface = pygame.Surface(size)
         self.position = position
         self.size = size
         self.game = game
 
-        self.surface.fill(card_color)
+        self.surface = self.generate_surface(False,game,size,card_color,corners_image,card_font)
+        self.surface_glow = self.generate_surface(True,game,size,card_color,corners_image,card_font)
+    
+    def generate_surface(self, glow, game, size, card_color, corners_image, card_font):
+        surface = pygame.Surface(size)
+        surface.fill((255,255,255) if glow else card_color)
         
-        text = card_font.render(game.name,True,(255,255,255))
-        self.surface.blit(text,((size[0] - text.width) / 2,225+5))
+        text = card_font.render(game.name,True,(0,0,0) if glow else(255,255,255))
+        surface.blit(text,((size[0] - text.width) / 2,225+5))
+
         artwork = None
         if game.illustration_path:
             artwork = pygame.image.load(game.illustration_path)
             artwork = pygame.transform.smoothscale(artwork,(size[0], 225))
-            self.surface.blit(artwork)
-        self.surface.blit(corners_image)
+            surface.blit(artwork)
+        
+        surface.blit(corners_image)
+        surface.set_colorkey((0,255,0))
+        return surface
 
 class Window:
     def __init__(self):
@@ -41,12 +50,15 @@ class Window:
 
         self.buttons:list[Card] = []
         self.corners_image = pygame.image.load(asset_corners)
+        self.glow_image = pygame.image.load(asset_glow)
         self.card_font = pygame.font.SysFont("Arial",16)
         self.header_font = pygame.font.SysFont("Arial",32,bold=True)
 
         self.start_press_button = None
         self.scroll_position = 0
         self.scroll_amount = 40
+        self.selected_card = 0
+        self.selector_active = False
 
         self.card_width = 150
         self.card_height = 257
@@ -68,8 +80,8 @@ class Window:
         self.running = True
         while self.running:
             now = datetime.datetime.now()
-            time_delta = (now - self.last_frame).total_seconds()
             self.last_frame = now
+            #time_delta = (now - self.last_frame).total_seconds()
             #print(f"FPS: {round(1/time_delta)}")
 
             for event in pygame.event.get():
@@ -77,10 +89,26 @@ class Window:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
                     self.update_buttons()
+                elif event.type == pygame.KEYDOWN:
+                    # checking this here ensures the first directional input wont move the selection but instead only enable it
+                    if self.selector_active:
+                        if event.key == pygame.K_LEFT:
+                            self.selected_card = max(self.selected_card-1, 0)
+                        if event.key == pygame.K_RIGHT:
+                            self.selected_card = min(self.selected_card+1, len(self.buttons)-1)
+                        if event.key == pygame.K_DOWN:
+                            self.selected_card = min(self.selected_card+self.calc_buttons_per_row(), len(self.buttons)-1)
+                        if event.key == pygame.K_UP:
+                            self.selected_card = max(self.selected_card-self.calc_buttons_per_row(), 0)
+                        if event.key == pygame.K_RETURN:
+                            game = self.buttons[self.selected_card].game
+                            game.parent_source.run_game(game.id)
+                    self.selector_active = True
                 elif event.type == pygame.MOUSEWHEEL:
                     self.scroll_position += self.scroll_amount * event.y
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
+                        self.selector_active = False
                         self.start_press_button = self.button_at(event.pos)
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
@@ -103,13 +131,23 @@ class Window:
         pygame.quit()
 
     def draw_buttons(self):
-        for button in self.buttons:
-            position = (button.position[0], button.position[1]+self.scroll_position)
-            self.screen.blit(button.surface,position)
+        if self.selector_active:
+            position = self.calc_button_pos(self.selected_card)
+            self.screen.blit(self.glow_image, (position[0]-21, position[1]+self.scroll_position-10))
+            #print(button.game)
+        for index, button in enumerate(self.buttons):
+            if index == self.selected_card and self.selector_active:
+                self.screen.blit(button.surface_glow, (button.position[0], button.position[1]+self.scroll_position))
+            else:
+                self.screen.blit(button.surface, (button.position[0], button.position[1]+self.scroll_position))
 
-    def calc_button_pos(self, index):
+    def calc_buttons_per_row(self):
         container_width = self.screen.width - self.padding_x * 2
         buttons_per_row = (container_width + self.card_gap_x) // (self.card_width + self.card_gap_x)
+        return buttons_per_row
+
+    def calc_button_pos(self, index):
+        buttons_per_row = self.calc_buttons_per_row()
         x = int(index % buttons_per_row) * (self.card_width + self.card_gap_x) + self.padding_x
         y = int(index / buttons_per_row) * (self.card_height + self.card_gap_y) + self.padding_y
         return (x, y)
