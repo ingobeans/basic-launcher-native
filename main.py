@@ -76,12 +76,12 @@ class Window:
         
         text = self.font.render(game.name,True,(255,255,255))
         card.blit(text,((self.card_width - text.width) / 2,225+5))
-        card.blit(self.corners_image)
         artwork = None
         if game.illustration_path:
             artwork = pygame.image.load(game.illustration_path)
             artwork = pygame.transform.scale(artwork,(self.card_width, 225))
             card.blit(artwork)
+        card.blit(self.corners_image)
         
         self.buttons.append([button,game,card])
 
