@@ -1,6 +1,6 @@
 import sources, pygame, datetime, os, sys, config
 
-version = "1.2.0"
+version = "1.3.0"
 
 def real_path(relative_path):
     if path := getattr(sys, '_MEIPASS', False): # hey look its the walrus operator!
