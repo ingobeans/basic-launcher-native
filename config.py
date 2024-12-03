@@ -18,6 +18,11 @@ def get_default_config():
     return {
         "sort": "alphabetical", # How to sort games. Options are 'alphabetical', 'source'
         "disabled sources":[],
+        "input":{
+            "disable_keyboard_navigation": False, # Disable movement by arrow keys (on windows, if primarily using controller for input, setting this to True can fix buggy joystick input)
+            "disable_controller": False, # Disables controller input (on windows, controller may still give input as arrow keys. I hate that.)
+            "axis_threshold": 0.1 # Threshold for axis movement on controllers
+        },
         
         "source settings": {
             "steam":{

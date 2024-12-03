@@ -50,6 +50,14 @@ class Window:
         self.card_color = (61,61,67)
         pygame.display.set_caption("Basic Launcher")
 
+    
+        if not config.active_config["input"]["disable_controller"]:
+            pygame.joystick.init()
+            self.joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+            self.last_joystick_moves = [[0,0] for _ in self.joysticks]
+            self.last_joystick_button_states = [[False]*joystick.get_numbuttons() for joystick in self.joysticks]
+            print(f"found {len(self.joysticks)} joystick(s)")
+
         self.buttons:list[Card] = []
         self.corners_image = pygame.image.load(asset_corners)
         self.glow_image = pygame.image.load(asset_glow)
@@ -61,6 +69,7 @@ class Window:
         self.scroll_amount = 40
         self.selected_card = 0
         self.selector_active = False
+        self.using_controller = False
 
         self.card_width = 150
         self.card_height = 257
@@ -76,6 +85,64 @@ class Window:
                 if position[1] > button.position[1] + self.scroll_position and position[1] < button.position[1] + button.size[1] + self.scroll_position:
                     return button
 
+    def move_left(self):
+        self.selected_card = max(self.selected_card-1, 0)
+    def move_right(self):
+        self.selected_card = min(self.selected_card+1, len(self.buttons)-1)
+    def move_up(self):
+        self.selected_card = max(self.selected_card-self.calc_buttons_per_row(), 0)
+    def move_down(self):
+        self.selected_card = min(self.selected_card+self.calc_buttons_per_row(), len(self.buttons)-1)
+    
+    def handle_controller(self)->bool:
+        if config.active_config["input"]["disable_controller"]:
+            return False
+        using_controller = False
+        axis_threshold = config.active_config["input"]["axis_threshold"]
+        for index, joystick in enumerate(self.joysticks):
+            joystick_moved = False
+            x = joystick.get_axis(0)
+            y = joystick.get_axis(1)
+            
+            if x > axis_threshold:
+                if self.last_joystick_moves[index][0] != 1:
+                    joystick_moved = True
+                    self.last_joystick_moves[index][0] = 1
+                    self.move_right()
+            elif x < -axis_threshold:
+                if self.last_joystick_moves[index][0] != -1:
+                    joystick_moved = True
+                    self.last_joystick_moves[index][0] = -1
+                    self.move_left()
+            else:
+                self.last_joystick_moves[index][0] = 0
+            if y > axis_threshold:
+                if self.last_joystick_moves[index][1] != 1:
+                    joystick_moved = True
+                    self.last_joystick_moves[index][1] = 1
+                    self.move_down()
+            elif y < -axis_threshold:
+                if self.last_joystick_moves[index][1] != -1:
+                    joystick_moved = True
+                    self.last_joystick_moves[index][1] = -1
+                    self.move_up()
+            else:
+                self.last_joystick_moves[index][1] = 0
+                
+            using_controller = using_controller or joystick_moved
+            
+            for button_index in range(joystick.get_numbuttons()):
+                button = joystick.get_button(button_index)
+                old = self.last_joystick_button_states[index][button_index]
+                self.last_joystick_button_states[index][button_index] = button
+                
+                using_controller = using_controller or button
+
+                if button and not old:
+                    game = self.buttons[self.selected_card].game
+                    game.parent_source.run_game(game.id)
+        return using_controller
+
     def run(self):
         self.update_buttons()
         self.last_frame = datetime.datetime.now()
@@ -85,23 +152,27 @@ class Window:
             self.last_frame = now
             #time_delta = (now - self.last_frame).total_seconds()
             #print(f"FPS: {round(1/time_delta)}")
+            events = pygame.event.get()
 
-            for event in pygame.event.get():
+            self.using_controller = self.handle_controller()
+            self.selector_active = self.selector_active or self.using_controller
+            
+            for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
                     self.update_buttons()
-                elif event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN and not self.using_controller and not config.active_config["input"]["disable_keyboard_navigation"]:
                     # checking this here ensures the first directional input wont move the selection but instead only enable it
                     if self.selector_active:
                         if event.key == pygame.K_LEFT:
-                            self.selected_card = max(self.selected_card-1, 0)
+                            self.move_left()
                         if event.key == pygame.K_RIGHT:
-                            self.selected_card = min(self.selected_card+1, len(self.buttons)-1)
+                            self.move_right()
                         if event.key == pygame.K_DOWN:
-                            self.selected_card = min(self.selected_card+self.calc_buttons_per_row(), len(self.buttons)-1)
+                            self.move_down()
                         if event.key == pygame.K_UP:
-                            self.selected_card = max(self.selected_card-self.calc_buttons_per_row(), 0)
+                            self.move_up()
                         if event.key == pygame.K_RETURN:
                             game = self.buttons[self.selected_card].game
                             game.parent_source.run_game(game.id)
