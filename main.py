@@ -3,24 +3,39 @@ import sources, pygame, pygame_gui, datetime
 class Window:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode([1196, 675],vsync=True,flags=pygame.RESIZABLE)#|pygame.NOFRAME)
+        self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)#|pygame.NOFRAME)
         self.running = False
         self.background_color = (25,25,27)
         self.card_color = (61,61,67)
-        self.ui_manager = pygame_gui.UIManager([1196, 675])
+        self.ui_manager = pygame_gui.UIManager([1120+10, 675])
         pygame.display.set_caption("Basic Launcher")
-        self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.screen.get_rect(),self.ui_manager)
-        self.scrollbox.vert_scroll_bar.scroll_wheel_speed = 240
+
         self.buttons = []
         self.corners_image = pygame.image.load("assets/corners.png")
-        self.font = pygame.font.SysFont("Arial",16)
+        self.card_font = pygame.font.SysFont("Arial",16)
+        self.header_font = pygame.font.SysFont("Arial",32,bold=True)
 
         self.card_width = 150
         self.card_height = 257
         self.card_gap_x = 10
         self.card_gap_y = 10
 
+        self.padding_x = 10
+        self.padding_y = 80
+        
+        self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.get_scrollbox_rect(),self.ui_manager)
+        self.scrollbox.vert_scroll_bar.scroll_wheel_speed = 240
+    
+    def get_scrollbox_rect(self):
+        scrollbox_rect = self.screen.get_rect().copy()
+        scrollbox_rect.top += self.padding_y
+        scrollbox_rect.height -= self.padding_y
+        scrollbox_rect.left += self.padding_x
+        scrollbox_rect.width -= self.padding_x * 2
+        return scrollbox_rect
+
     def run(self):
+        self.update_buttons()
         self.last_frame = datetime.datetime.now()
         self.running = True
         while self.running:
@@ -34,6 +49,7 @@ class Window:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
                     self.ui_manager.set_window_resolution((self.screen.width, self.screen.height))
+                    self.scrollbox.rect = self.get_scrollbox_rect()
                     self.update_buttons()
                 elif event.type == pygame_gui.UI_BUTTON_PRESSED:
                     for button in self.buttons:
@@ -45,6 +61,13 @@ class Window:
             self.ui_manager.update(time_delta)
             self.screen.fill(self.background_color)
             self.draw_buttons()
+            
+            # hide overflow
+            pygame.draw.rect(self.screen, self.background_color, pygame.Rect(0,0,self.screen.width,self.padding_y))
+            
+            text = self.header_font.render("Library",True,(255,255,255))
+            self.screen.blit(text,((self.screen.width - text.width)/2,(self.padding_y - text.height)/2))
+
             #self.ui_manager.draw_ui(self.screen)
             pygame.display.update()
         
@@ -52,10 +75,12 @@ class Window:
 
     def draw_buttons(self):
         for button,_,card in self.buttons:
-            self.screen.blit(card,button.rect)
+            rect = button.rect
+            rect.left += self.padding_x
+            self.screen.blit(card,rect)
 
     def calc_button_pos(self, index):
-        buttons_per_row = (self.screen.width + self.card_gap_x) // (self.card_width + self.card_gap_x)
+        buttons_per_row = (self.scrollbox.rect.width + self.card_gap_x) // (self.card_width + self.card_gap_x)
         x = int(index % buttons_per_row) * (self.card_width + self.card_gap_x)
         y = int(index / buttons_per_row) * (self.card_height + self.card_gap_y)
         return (x, y)
@@ -74,7 +99,7 @@ class Window:
         card = pygame.Surface((button.rect[2],button.rect[3]))
         card.fill(self.card_color)
         
-        text = self.font.render(game.name,True,(255,255,255))
+        text = self.card_font.render(game.name,True,(255,255,255))
         card.blit(text,((self.card_width - text.width) / 2,225+5))
         artwork = None
         if game.illustration_path:
