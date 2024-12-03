@@ -76,7 +76,6 @@ class Steam(source.Source):
     def run_game(self,id):
         system = config.get_system()
         if system == "Windows":
-            print("wa")
             command = f"start steam://rungameid/{id}"
         elif system == "Darwin":
             command = f"open steam://rungameid/{id}"
