@@ -3,8 +3,8 @@ import sources, pygame, datetime, os, sys, config
 version = "1.2.0"
 
 def real_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, os.path.join("assets", relative_path))
+    if path := getattr(sys, '_MEIPASS', False): # hey look its the walrus operator!
+        return os.path.join(path, os.path.join("assets", relative_path))
     return os.path.join("assets", relative_path)
 
 asset_corners = real_path("corners.png")
