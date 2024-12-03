@@ -39,7 +39,8 @@ class Card:
 class Window:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)#|pygame.NOFRAME)
+
+        self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.HIDDEN)
 
         if config.get_system() == "Windows":
             import dark_titlebar
@@ -49,6 +50,7 @@ class Window:
         self.background_color = (25,25,27)
         self.card_color = (61,61,67)
         pygame.display.set_caption("Basic Launcher")
+        pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)
 
     
         if not config.active_config["input"]["disable_controller"]:
