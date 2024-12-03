@@ -79,7 +79,7 @@ class Window:
         artwork = None
         if game.illustration_path:
             artwork = pygame.image.load(game.illustration_path)
-            artwork = pygame.transform.scale(artwork,(self.card_width, 225))
+            artwork = pygame.transform.smoothscale(artwork,(self.card_width, 225))
             card.blit(artwork)
         card.blit(self.corners_image)
         
