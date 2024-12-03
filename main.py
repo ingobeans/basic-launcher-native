@@ -1,4 +1,4 @@
-import sources, pygame, pygame_gui, datetime, os, sys, config
+import sources, pygame, datetime, os, sys, config
 
 def real_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -6,6 +6,24 @@ def real_path(relative_path):
     return os.path.join("assets", relative_path)
 
 asset_corners = real_path("corners.png")
+
+class Card:
+    def __init__(self, game, position, size, card_color, corners_image, card_font):
+        self.surface = pygame.Surface(size)
+        self.position = position
+        self.size = size
+        self.game = game
+
+        self.surface.fill(card_color)
+        
+        text = card_font.render(game.name,True,(255,255,255))
+        self.surface.blit(text,((size[0] - text.width) / 2,225+5))
+        artwork = None
+        if game.illustration_path:
+            artwork = pygame.image.load(game.illustration_path)
+            artwork = pygame.transform.smoothscale(artwork,(size[0], 225))
+            self.surface.blit(artwork)
+        self.surface.blit(corners_image)
 
 class Window:
     def __init__(self):
@@ -19,13 +37,16 @@ class Window:
         self.running = False
         self.background_color = (25,25,27)
         self.card_color = (61,61,67)
-        self.ui_manager = pygame_gui.UIManager([1120+10, 675])
         pygame.display.set_caption("Basic Launcher")
 
-        self.buttons = []
+        self.buttons:list[Card] = []
         self.corners_image = pygame.image.load(asset_corners)
         self.card_font = pygame.font.SysFont("Arial",16)
         self.header_font = pygame.font.SysFont("Arial",32,bold=True)
+
+        self.start_press_button = None
+        self.scroll_position = 0
+        self.scroll_amount = 40
 
         self.card_width = 150
         self.card_height = 257
@@ -34,24 +55,12 @@ class Window:
 
         self.padding_x = 10
         self.padding_y = 80
-        
-        self.scrollbox = pygame_gui.elements.UIScrollingContainer(self.get_scrollbox_rect(),self.ui_manager)
-        self.scrollbox.vert_scroll_bar.scroll_wheel_speed = 240
-        self.scroll_to(-self.padding_y)
 
-    def scroll_to(self, target):
-        self.scrollbox.vert_scroll_bar.scroll_position = target
-        self.scrollbox.vert_scroll_bar.target_scroll_position = target
-        self.scrollbox.vert_scroll_bar.start_percentage = self.scrollbox.vert_scroll_bar.scroll_position / self.scrollbox.vert_scroll_bar.scrollable_height
-        self.scrollbox.vert_scroll_bar.has_moved_recently = True
-    
-    def get_scrollbox_rect(self):
-        scrollbox_rect = self.screen.get_rect().copy()
-        scrollbox_rect.top += self.padding_y
-        scrollbox_rect.height -= self.padding_y
-        scrollbox_rect.left += self.padding_x
-        scrollbox_rect.width -= self.padding_x * 2
-        return scrollbox_rect
+    def button_at(self, position):
+        for button in self.buttons:
+            if position[0] > button.position[0] and position[0] < button.position[0] + button.size[0]:
+                if position[1] > button.position[1] + self.scroll_position and position[1] < button.position[1] + button.size[1] + self.scroll_position:
+                    return button
 
     def run(self):
         self.update_buttons()
@@ -67,17 +76,18 @@ class Window:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
-                    self.ui_manager.set_window_resolution((self.screen.width, self.screen.height))
-                    self.scrollbox.rect = self.get_scrollbox_rect()
                     self.update_buttons()
-                elif event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    for button in self.buttons:
-                        if button[0] == event.ui_element:
-                            print(button[1])
-                            button[1].parent_source.run_game(button[1].id)          
-                self.ui_manager.process_events(event)
-            
-            self.ui_manager.update(time_delta)
+                elif event.type == pygame.MOUSEWHEEL:
+                    self.scroll_position += self.scroll_amount * event.y
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        self.start_press_button = self.button_at(event.pos)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        button = self.button_at(event.pos)
+                        if button and button == self.start_press_button:
+                            button.game.parent_source.run_game(button.game.id)
+
             self.screen.fill(self.background_color)
             self.draw_buttons()
             
@@ -93,41 +103,30 @@ class Window:
         pygame.quit()
 
     def draw_buttons(self):
-        for button,_,card in self.buttons:
-            rect = button.rect
-            rect.left += self.padding_x
-            self.screen.blit(card,rect)
+        for button in self.buttons:
+            position = (button.position[0], button.position[1]+self.scroll_position)
+            self.screen.blit(button.surface,position)
 
     def calc_button_pos(self, index):
-        buttons_per_row = (self.scrollbox.rect.width + self.card_gap_x) // (self.card_width + self.card_gap_x)
-        x = int(index % buttons_per_row) * (self.card_width + self.card_gap_x)
-        y = int(index / buttons_per_row) * (self.card_height + self.card_gap_y)
+        container_width = self.screen.width - self.padding_x * 2
+        buttons_per_row = (container_width + self.card_gap_x) // (self.card_width + self.card_gap_x)
+        x = int(index % buttons_per_row) * (self.card_width + self.card_gap_x) + self.padding_x
+        y = int(index / buttons_per_row) * (self.card_height + self.card_gap_y) + self.padding_y
         return (x, y)
 
     def update_buttons(self):
         for index, button in enumerate(self.buttons):
-            button[0].set_position(self.calc_button_pos(index))
+            button.position = self.calc_button_pos(index)
 
     def create_game_button(self, game:sources.game.Game):
-        button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager,container=self.scrollbox)
-        return button
+        #button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager,container=self.scrollbox)
+        card = Card(game,self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height),self.card_color,self.corners_image,self.card_font)
+        return card
 
     def add_game_button(self, game:sources.game.Game):
-        button = self.create_game_button(game)
-
-        card = pygame.Surface((button.rect[2],button.rect[3]))
-        card.fill(self.card_color)
+        card = self.create_game_button(game)
         
-        text = self.card_font.render(game.name,True,(255,255,255))
-        card.blit(text,((self.card_width - text.width) / 2,225+5))
-        artwork = None
-        if game.illustration_path:
-            artwork = pygame.image.load(game.illustration_path)
-            artwork = pygame.transform.smoothscale(artwork,(self.card_width, 225))
-            card.blit(artwork)
-        card.blit(self.corners_image)
-        
-        self.buttons.append([button,game,card])
+        self.buttons.append(card)
 
 window = Window()
 for game in sources.get_games():

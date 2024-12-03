@@ -1,6 +1,5 @@
 pillow>=11.0.0
 pygame-ce>=2.5.2
-pygame_gui>=0.6.12
-python-i18n>=0.3.9
 pywin32>=308; platform_system == "Windows"
 vdf>=3.4
+json_repair>=0.30.2
