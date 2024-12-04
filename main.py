@@ -40,17 +40,20 @@ class Window:
     def __init__(self):
         pygame.init()
 
-        self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.HIDDEN)
+        system_is_windows = config.get_system() == "Windows"
 
-        if config.get_system() == "Windows":
+        flags = pygame.HIDDEN if system_is_windows else pygame.RESIZABLE
+        self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=flags)
+
+        if system_is_windows:
             import dark_titlebar
             dark_titlebar.make_title_bar_dark(pygame.display.get_wm_info()["window"])
+            pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)
         
         self.running = False
         self.background_color = (25,25,27)
         self.card_color = (61,61,67)
         pygame.display.set_caption("Basic Launcher")
-        pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)
 
     
         if not config.active_config["input"]["disable_controller"]:
