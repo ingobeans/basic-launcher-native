@@ -1,6 +1,6 @@
 import sources, pygame, os, sys, config
 
-version = "1.3.10"
+version = "1.3.11"
 
 system_is_windows = config.get_system() == "Windows"
 if system_is_windows:
@@ -152,6 +152,9 @@ class Window:
     def on_resize_window(self):
         self.update_buttons()
         self.draw_screen()
+
+    def calc_vertical_scroll_height(self)->int:
+        return int((len(self.buttons))/self.calc_buttons_per_row())*(self.card_height+self.card_gap_y)
     
     def run(self):
         self.update_buttons()
@@ -189,6 +192,7 @@ class Window:
                     self.selector_active = True
                 elif event.type == pygame.MOUSEWHEEL:
                     self.scroll_position += self.scroll_amount * event.y
+                    self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_vertical_scroll_height()-self.padding_y))
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.selector_active = False
@@ -239,6 +243,7 @@ class Window:
     def update_buttons(self):
         for index, button in enumerate(self.buttons):
             button.position = self.calc_button_pos(index)
+        self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_vertical_scroll_height()-self.padding_y))
 
     def create_game_button(self, game:sources.game.Game):
         #button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager,container=self.scrollbox)
