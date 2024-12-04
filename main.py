@@ -1,4 +1,4 @@
-import sources, pygame, datetime, os, sys, config
+import sources, pygame, os, sys, config
 
 version = "1.3.0"
 
@@ -150,13 +150,8 @@ class Window:
 
     def run(self):
         self.update_buttons()
-        self.last_frame = datetime.datetime.now()
         self.running = True
         while self.running:
-            now = datetime.datetime.now()
-            self.last_frame = now
-            #time_delta = (now - self.last_frame).total_seconds()
-            #print(f"FPS: {round(1/time_delta)}")
             events = pygame.event.get()
 
             if len(self.buttons) > 0:
