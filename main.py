@@ -1,6 +1,6 @@
 import sources, pygame, os, sys, config
 
-version = "1.3.11"
+version = "1.3.12"
 
 system_is_windows = config.get_system() == "Windows"
 if system_is_windows:
@@ -90,15 +90,27 @@ class Window:
             if position[0] > button.position[0] and position[0] < button.position[0] + button.size[0]:
                 if position[1] > button.position[1] + self.scroll_position and position[1] < button.position[1] + button.size[1] + self.scroll_position:
                     return button
-
+    
+    def scroll_selection_to_view(self):
+        min_y_of_selected_card = self.calc_y_height_of_card(self.selected_card)-(self.card_height+self.card_gap_y)
+        if -min_y_of_selected_card>self.scroll_position:
+            self.scroll_position = -min_y_of_selected_card
+        else:
+            max_y_of_selected_card = min_y_of_selected_card+(self.card_height+self.card_gap_y)
+            if max_y_of_selected_card>self.screen.height-self.scroll_position-self.padding_y:
+                self.scroll_position=self.screen.height-self.padding_y-max_y_of_selected_card
     def move_left(self):
         self.selected_card = max(self.selected_card-1, 0)
+        self.scroll_selection_to_view()
     def move_right(self):
         self.selected_card = min(self.selected_card+1, len(self.buttons)-1)
+        self.scroll_selection_to_view()
     def move_up(self):
         self.selected_card = max(self.selected_card-self.calc_buttons_per_row(), 0)
+        self.scroll_selection_to_view()
     def move_down(self):
         self.selected_card = min(self.selected_card+self.calc_buttons_per_row(), len(self.buttons)-1)
+        self.scroll_selection_to_view()
     
     def handle_controller(self)->bool:
         if config.active_config["input"]["disable_controller"]:
@@ -153,8 +165,8 @@ class Window:
         self.update_buttons()
         self.draw_screen()
 
-    def calc_vertical_scroll_height(self)->int:
-        return int((len(self.buttons))/self.calc_buttons_per_row())*(self.card_height+self.card_gap_y)
+    def calc_y_height_of_card(self,card_index)->int:
+        return int(card_index/self.calc_buttons_per_row()+1)*(self.card_height+self.card_gap_y)
     
     def run(self):
         self.update_buttons()
@@ -192,7 +204,7 @@ class Window:
                     self.selector_active = True
                 elif event.type == pygame.MOUSEWHEEL:
                     self.scroll_position += self.scroll_amount * event.y
-                    self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_vertical_scroll_height()-self.padding_y))
+                    self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_y_height_of_card(len(self.buttons))-self.padding_y))
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.selector_active = False
@@ -243,7 +255,7 @@ class Window:
     def update_buttons(self):
         for index, button in enumerate(self.buttons):
             button.position = self.calc_button_pos(index)
-        self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_vertical_scroll_height()-self.padding_y))
+        self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_y_height_of_card(len(self.buttons))-self.padding_y))
 
     def create_game_button(self, game:sources.game.Game):
         #button = pygame_gui.elements.UIButton(pygame.Rect(self.calc_button_pos(len(self.buttons)),(self.card_width,self.card_height)),text=game.name,manager=self.ui_manager,container=self.scrollbox)
