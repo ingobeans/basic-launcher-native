@@ -2,12 +2,9 @@ import config
 
 class Source:
     name:str
-    path:str
-    disabled_games:list[str]
-    installed:bool = True
+    enabled:bool = True
     def __init__(self) -> None:
-        self.path = config.active_config["source settings"][self.name]["path"]
-        self.disabled_games = config.active_config["source settings"][self.name]["disabled games"]
+        self.enabled = config.active_config["source settings"][self.name].get("enabled",True)
     def get_games(self)->list:
         raise NotImplemented(f"Source {self.name} not implemented")
     def get_disabled_games(self):

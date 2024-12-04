@@ -12,7 +12,7 @@ sources:list[source.Source] = [source_steam,source_raw]
 def get_games():
     games = []
     for s in sources:
-        if s.name in config.active_config["disabled sources"] or not s.installed:
+        if not s.enabled:
             continue
         illustration_overrides = s.get_illustration_overrides()
         aliases = s.get_aliases()
@@ -25,5 +25,5 @@ def get_games():
                 g.illustration_path = illustration_overrides[g.name]
             games.append(g)
     if config.active_config["sort"] == "alphabetical":
-        games = sorted(games,key=lambda g : g.name)
+        games = sorted(games,key=lambda g : g.name.lower())
     return games

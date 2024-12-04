@@ -10,7 +10,7 @@ class Raw(source.Source):
     games_registry = {}
 
     def __init__(self) -> None:
-        pass
+        super().__init__()
 
     def game_exists(self, path):
         return os.path.isfile(path)

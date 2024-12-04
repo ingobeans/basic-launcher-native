@@ -17,7 +17,6 @@ def get_app_data_directory():
 def get_default_config():
     return {
         "sort": "alphabetical", # How to sort games. Options are 'alphabetical', 'source'
-        "disabled sources":[],
         "input":{
             "disable_keyboard_navigation": False, # Disable movement by arrow keys (on windows, if primarily using controller for input, setting this to True can fix buggy joystick input)
             "disable_controller": False, # Disables controller input (on windows, controller may still give input as arrow keys. I hate that.)
@@ -26,12 +25,14 @@ def get_default_config():
         
         "source settings": {
             "steam":{
+                "enabled": True, # Enable this source?
                 "path":None, # None means default path for the system. Path should be a folder containing 'steamapps'
                 "aliases": {}, # Aliases for executables. Key is the default name, value is new name
                 "illustration overrides": {}, # Overrides illustration. Key is display name (the alias if configured, otherwise default), value is path to image
-                "disabled games":["Steamworks Common Redistributables"], # Game names that aren't shown
+                "disabled games":["Steamworks Common Redistributables","Steam Linux Runtime 1.0 (scout)","Steam Linux Runtime 1.0 (soldier)","Spacewar"], # Game names that aren't shown
             },
             "raw":{
+                "enabled": True, # Enable this source?
                 "paths":[], # Path to raw executables
                 "aliases": {}, # Aliases for executables. Key is the default name, value is new name
                 "illustration overrides": {}, # Overrides illustration. Key is display name (the alias if configured, otherwise default), value is path to image

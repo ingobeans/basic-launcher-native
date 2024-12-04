@@ -4,6 +4,11 @@ from . import game
 
 class Steam(source.Source):
     name:str = "steam"
+    
+    def __init__(self) -> None:
+        super().__init__()
+        
+        self.path = config.active_config["source settings"]["steam"].get("path",None)
 
     def valid_path(self, path):
         valid = os.path.isdir(path) and os.path.isdir(os.path.join(path, "steamapps"))
@@ -37,7 +42,7 @@ class Steam(source.Source):
             path = self.get_default_path()
         
         if not self.valid_path(path):
-            self.installed = False
+            self.enabled = False
             return None
         
         return path
