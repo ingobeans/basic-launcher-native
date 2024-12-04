@@ -48,7 +48,7 @@ class Window:
         if system_is_windows:
             import dark_titlebar
             dark_titlebar.make_title_bar_dark(pygame.display.get_wm_info()["window"])
-            pygame.display.set_mode([1120+10, 675],vsync=True,flags=pygame.RESIZABLE)
+            pygame.display.set_mode(self.screen.size,vsync=True,flags=pygame.RESIZABLE)
         
         self.running = False
         self.background_color = (25,25,27)
