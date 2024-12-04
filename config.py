@@ -29,7 +29,7 @@ def get_default_config():
                 "path":None, # None means default path for the system. Path should be a folder containing 'steamapps'
                 "aliases": {}, # Aliases for executables. Key is the default name, value is new name
                 "illustration overrides": {}, # Overrides illustration. Key is display name (the alias if configured, otherwise default), value is path to image
-                "disabled games":["Steamworks Common Redistributables","Steam Linux Runtime 1.0 (scout)","Steam Linux Runtime 1.0 (soldier)","Spacewar"], # Game names that aren't shown
+                "disabled games":["Steamworks Common Redistributables","Steam Linux Runtime 1.0 (scout)","Steam Linux Runtime 2.0 (soldier)","Spacewar"], # Game names that aren't shown
             },
             "raw":{
                 "enabled": True, # Enable this source?
