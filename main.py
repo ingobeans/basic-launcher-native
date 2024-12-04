@@ -2,6 +2,10 @@ import sources, pygame, os, sys, config
 
 version = "1.3.0"
 
+system_is_windows = config.get_system() == "Windows"
+if system_is_windows:
+    import window_fixes
+
 def real_path(relative_path):
     if path := getattr(sys, '_MEIPASS', False): # hey look its the walrus operator!
         return os.path.join(path, os.path.join("assets", relative_path))
@@ -40,14 +44,11 @@ class Window:
     def __init__(self):
         pygame.init()
 
-        system_is_windows = config.get_system() == "Windows"
-
         flags = pygame.HIDDEN if system_is_windows else pygame.RESIZABLE
         self.screen = pygame.display.set_mode([1120+10, 675],vsync=True,flags=flags)
 
         if system_is_windows:
-            import dark_titlebar
-            dark_titlebar.make_title_bar_dark(pygame.display.get_wm_info()["window"])
+            window_fixes.make_title_bar_dark(pygame.display.get_wm_info()["window"])
             pygame.display.set_mode(self.screen.size,vsync=True,flags=pygame.RESIZABLE)
         
         self.running = False
@@ -148,9 +149,17 @@ class Window:
                     game.parent_source.run_game(game.id)
         return using_controller
 
+    def on_resize_window(self):
+        self.update_buttons()
+        self.draw_screen()
+    
     def run(self):
         self.update_buttons()
         self.running = True
+        
+        if system_is_windows:
+            window_fixes.setup_window_rezising_refresh(pygame.display.get_wm_info()["window"], self.on_resize_window)
+
         while self.running:
             events = pygame.event.get()
 
@@ -162,7 +171,7 @@ class Window:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
-                    self.update_buttons()
+                    self.on_resize_window()
                 elif event.type == pygame.KEYDOWN and not self.using_controller and not config.active_config["input"]["disable_keyboard_navigation"] and len(self.buttons) > 0:
                     # checking this here ensures the first directional input wont move the selection but instead only enable it
                     if self.selector_active:
@@ -190,19 +199,20 @@ class Window:
                         if button and button == self.start_press_button:
                             button.game.parent_source.run_game(button.game.id)
 
-            self.screen.fill(self.background_color)
-            self.draw_buttons()
-            
-            # hide overflow
-            pygame.draw.rect(self.screen, self.background_color, pygame.Rect(0,0,self.screen.width,self.padding_y))
-            
-            text = self.header_font.render("Library",True,(255,255,255))
-            self.screen.blit(text,((self.screen.width - text.width)/2,(self.padding_y - text.height)/2))
-
-            #self.ui_manager.draw_ui(self.screen)
-            pygame.display.update()
+            self.draw_screen()
         
         pygame.quit()
+
+    def draw_screen(self):
+        self.screen.fill(self.background_color)
+        self.draw_buttons()
+        
+        # hide overflow
+        pygame.draw.rect(self.screen, self.background_color, pygame.Rect(0,0,self.screen.width,self.padding_y))
+        
+        text = self.header_font.render("Library",True,(255,255,255))
+        self.screen.blit(text,((self.screen.width - text.width)/2,(self.padding_y - text.height)/2))
+        pygame.display.update()
 
     def draw_buttons(self):
         if self.selector_active:
