@@ -50,19 +50,20 @@ class Raw(source.Source):
         games = []
         games_paths = config.active_config["source settings"]["raw"]["paths"]
         for path in games_paths:
+            if not self.game_exists(path):
+                continue
             name = os.path.basename(path).split(".")[0]
             game_id = os.path.basename(path)
             self.games_registry[game_id] = path
             if name in self.get_illustration_overrides():
                 illustration_path = None
-            else:
+            elif config.get_system() == "Windows":
                 illustration_path = self.get_icon_from_exe(path)
             g = game.Game(self,name,game_id,illustration_path)
             games.append(g)
         return games
     
     def run_game(self,id):
-        system = config.get_system()
         path = self.games_registry[id]
         
         subprocess.Popen([path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=os.path.dirname(path))
