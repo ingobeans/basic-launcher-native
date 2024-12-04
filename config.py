@@ -26,7 +26,8 @@ def get_default_config():
         "source settings": {
             "steam":{
                 "enabled": True, # Enable this source?
-                "path":None, # None means default path for the system. Path should be a folder containing 'steamapps'
+                "path":None, # Path to your steam folder. None will be default path. The steam folder should contain a folder named "steamapps".
+                "extra paths":[], # List of additional "SteamLibrary" folders. Use if you have ex. multiple disks with games on them.
                 "aliases": {}, # Aliases for executables. Key is the default name, value is new name
                 "illustration overrides": {}, # Overrides illustration. Key is display name (the alias if configured, otherwise default), value is path to image
                 "disabled games":["Steamworks Common Redistributables","Steam Linux Runtime 1.0 (scout)","Steam Linux Runtime 2.0 (soldier)","Spacewar"], # Game names that aren't shown

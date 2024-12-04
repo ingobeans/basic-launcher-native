@@ -8,10 +8,16 @@ class Steam(source.Source):
     def __init__(self) -> None:
         super().__init__()
         
-        self.path = config.active_config["source settings"]["steam"].get("path",None)
+        self.path = config.active_config["source settings"]["steam"].get("path",None) or self.get_default_path()
+        if not self.valid_path(self.path):
+            self.enabled = False
+        self.extra_paths = []
+        for path in config.active_config["source settings"]["steam"].get("extra paths",[]):
+            if self.valid_path(path):
+                self.extra_paths.append(path)
 
     def valid_path(self, path):
-        valid = os.path.isdir(path) and os.path.isdir(os.path.join(path, "steamapps"))
+        valid = os.path.isdir(path) and os.path.isdir(os.path.join(path, "steamapps", "common"))
         return valid
     
     def game_exists(self, name):
@@ -19,7 +25,7 @@ class Steam(source.Source):
         if not path:
             return []
         
-        apps = os.path.join(path, "steamapps", "common")
+        apps = os.path.join(path, "common")
         return name in os.listdir(apps)
 
     def get_default_path(self):
@@ -34,48 +40,34 @@ class Steam(source.Source):
                 return old_path
             return os.path.expanduser('~/.steam/steam')
     
-    def get_path(self):
-        path = None
-        if self.path:
-            path = self.path
-        else:
-            path = self.get_default_path()
-        
-        if not self.valid_path(path):
-            self.enabled = False
+    def get_game_illustraton_path(self, game_id):
+        if not self.path:
             return None
         
-        return path
-    
-    def get_game_illustraton_path(self, game_id):
-        path = self.get_path()
-        if not path:
-            return []
-        
-        library_path = os.path.join(path, "appcache", "librarycache")
+        library_path = os.path.join(self.path, "appcache", "librarycache")
         illustration_path = os.path.join(library_path, f"{game_id}_library_600x900.jpg")
         if os.path.isfile(illustration_path):
             return illustration_path
         return None
 
     def get_games(self):
-        path = self.get_path()
-        if not path:
-            return []
-        
-        apps_path = os.path.join(path, "steamapps")
         games = []
+        for path in self.extra_paths+[self.path]:
+            if not path:
+                continue
+            apps_path = os.path.join(path, "steamapps")
 
-        # load all steam app manifests
-        files = os.listdir(apps_path)
-        filtered_files = [x for x in files if x.startswith("appmanifest_")]
+            # load all steam app manifests
+            files = os.listdir(apps_path)
+            filtered_files = [x for x in files if x.startswith("appmanifest_")]
+            
+            for manifest in filtered_files:
+                # load the (vdf formatted) manifests 
+                with open(os.path.join(apps_path, manifest), "r", encoding="utf-8") as f:
+                    data = vdf.load(f)["AppState"]
+                g = game.Game(self, data["name"], data["appid"], self.get_game_illustraton_path(data["appid"]))
+                games.append(g)
         
-        for manifest in filtered_files:
-            # load the (vdf formatted) manifests 
-            with open(os.path.join(apps_path, manifest), "r", encoding="utf-8") as f:
-                data = vdf.load(f)["AppState"]
-            g = game.Game(self, data["name"], data["appid"], self.get_game_illustraton_path(data["appid"]))
-            games.append(g)
         return games
     
     def run_game(self,id):
