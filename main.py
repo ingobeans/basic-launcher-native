@@ -159,15 +159,16 @@ class Window:
             #print(f"FPS: {round(1/time_delta)}")
             events = pygame.event.get()
 
-            self.using_controller = self.handle_controller()
-            self.selector_active = self.selector_active or self.using_controller
+            if len(self.buttons) > 0:
+                self.using_controller = self.handle_controller()
+                self.selector_active = self.selector_active or self.using_controller
             
             for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.VIDEORESIZE:
                     self.update_buttons()
-                elif event.type == pygame.KEYDOWN and not self.using_controller and not config.active_config["input"]["disable_keyboard_navigation"]:
+                elif event.type == pygame.KEYDOWN and not self.using_controller and not config.active_config["input"]["disable_keyboard_navigation"] and len(self.buttons) > 0:
                     # checking this here ensures the first directional input wont move the selection but instead only enable it
                     if self.selector_active:
                         if event.key == pygame.K_LEFT:
