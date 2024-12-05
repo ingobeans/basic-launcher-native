@@ -1,6 +1,6 @@
 import sources, pygame, os, sys, config
 
-version = "1.3.12"
+version = "1.3.13"
 
 system_is_windows = config.get_system() == "Windows"
 if system_is_windows:
