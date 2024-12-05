@@ -203,6 +203,11 @@ class Window:
                             game = self.buttons[self.selected_card].game
                             game.parent_source.run_game(game.id)
                     self.selector_active = True
+                elif event.type == pygame.MOUSEMOTION:
+                    if self.button_at(event.pos):
+                        pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_HAND))
+                    else:
+                        pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_ARROW))
                 elif event.type == pygame.MOUSEWHEEL:
                     self.scroll_position += self.scroll_amount * event.y
                     self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_y_height_of_card(len(self.buttons))-self.padding_y))
