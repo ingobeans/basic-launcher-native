@@ -89,7 +89,8 @@ class Window:
         for button in self.buttons:
             if position[0] > button.position[0] and position[0] < button.position[0] + button.size[0]:
                 if position[1] > button.position[1] + self.scroll_position and position[1] < button.position[1] + button.size[1] + self.scroll_position:
-                    return button
+                    if position[1] > self.padding_y:
+                        return button
     
     def scroll_selection_to_view(self):
         min_y_of_selected_card = self.calc_y_height_of_card(self.selected_card)-(self.card_height+self.card_gap_y)
