@@ -1,4 +1,4 @@
-import sources, pygame, os, sys, config
+import sources, pygame, os, sys, config, PIL.Image, tempfile
 
 version = "1.3.13"
 
@@ -14,11 +14,40 @@ def real_path(relative_path):
 asset_corners = real_path("corners.png")
 asset_glow = real_path("glow.png")
 
+def load_illustration(path:str)->pygame.Surface:
+    if not path:
+        return None
+    try:
+        artwork = pygame.image.load(path)
+        return artwork
+    except:
+        # if it fails, most likely the image is animated
+        # check if there already is a fixed illustration
+        cached_path = os.path.join(tempfile.gettempdir(), os.path.splitext(os.path.basename(path))[0]+".png")
+        if os.path.isfile(cached_path):
+            return pygame.image.load(cached_path)
+        
+        # if it is animated
+        # convert it to a static image
+        # and save so we can use cached in future
+        image = PIL.Image.open(path)
+        if image.is_animated:
+            try:
+                image.seek(0)
+                image.save(cached_path,format="PNG")
+                return pygame.image.load(cached_path)
+            except:
+                return None
+        # otherwise it failed for some other reason
+        return None
+        
+
 class Card:
     def __init__(self, game, position, size, card_color, corners_image, card_font):
         self.position = position
         self.size = size
         self.game = game
+        self.illustration = pygame.transform.smoothscale(load_illustration(game.illustration_path).convert_alpha(),(size[0], 225))
 
         self.surface = self.generate_surface(False,game,size,card_color,corners_image,card_font)
         self.surface_glow = self.generate_surface(True,game,size,card_color,corners_image,card_font)
@@ -30,15 +59,8 @@ class Card:
         text = card_font.render(game.name,True,(0,0,0) if glow else(255,255,255))
         surface.blit(text,((size[0] - text.width) / 2,225+5))
 
-        artwork = None
-        if game.illustration_path:
-            try:
-                artwork = pygame.image.load(game.illustration_path)
-                artwork = pygame.transform.smoothscale(artwork,(size[0], 225))
-                surface.blit(artwork)
-            except:
-                pass
-        
+        if self.illustration:
+            surface.blit(self.illustration)
         surface.blit(corners_image)
         surface.set_colorkey((0,255,0))
         return surface
