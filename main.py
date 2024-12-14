@@ -1,6 +1,6 @@
 import sources, pygame, os, sys, config, PIL.Image, tempfile
 
-version = "1.3.13"
+version = "1.3.14"
 
 system_is_windows = config.get_system() == "Windows"
 if system_is_windows:
