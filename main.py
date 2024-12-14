@@ -32,9 +32,12 @@ class Card:
 
         artwork = None
         if game.illustration_path:
-            artwork = pygame.image.load(game.illustration_path)
-            artwork = pygame.transform.smoothscale(artwork,(size[0], 225))
-            surface.blit(artwork)
+            try:
+                artwork = pygame.image.load(game.illustration_path)
+                artwork = pygame.transform.smoothscale(artwork,(size[0], 225))
+                surface.blit(artwork)
+            except:
+                pass
         
         surface.blit(corners_image)
         surface.set_colorkey((0,255,0))

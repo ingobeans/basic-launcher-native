@@ -1,6 +1,7 @@
-import config, os, vdf, subprocess
+import config, os, vdf, subprocess, vdf_bin
 from . import source
 from . import game
+from . import raw
 
 class Steam(source.Source):
     name:str = "steam"
@@ -15,6 +16,7 @@ class Steam(source.Source):
         for path in config.active_config["source settings"]["steam"].get("extra paths",[]):
             if self.valid_path(path):
                 self.extra_paths.append(path)
+        self.show_non_steam_games = config.active_config["source settings"]["steam"].get("show non steam games",True)
 
     def valid_path(self, path):
         valid = os.path.isdir(path) and os.path.isdir(os.path.join(path, "steamapps", "common"))
@@ -49,6 +51,30 @@ class Steam(source.Source):
         if os.path.isfile(illustration_path):
             return illustration_path
         return None
+    
+    def get_non_steam_illustration_path(self,game_id,grids_path):
+        files = os.listdir(grids_path)
+        for file in files:
+            if file.startswith(str(game_id)) and not file.endswith("json"):
+                path = os.path.join(grids_path,file)
+                return path
+        return None
+    
+    def get_non_steam_games(self):
+        games = []
+        userdata_path = os.path.join(self.path,"userdata")
+        for user in os.listdir(userdata_path):
+            config_path = os.path.join(userdata_path,user,"config")
+            grids_path = os.path.join(config_path,"grid")
+            with open(os.path.join(config_path, "shortcuts.vdf"), "rb") as f:
+                data = vdf_bin.parse_vdf(bytearray(list(f.read())))
+                for key in data["shortcuts"]:
+                    shortcut = data["shortcuts"][key]
+                    illustration = self.get_non_steam_illustration_path(shortcut['appid'],grids_path)
+                    g = game.Game(self, shortcut["AppName"], f"n{shortcut['Exe'].strip('"')}", illustration)
+                    games.append(g)
+        return games
+
 
     def get_games(self):
         games = []
@@ -67,10 +93,14 @@ class Steam(source.Source):
                     data = vdf.load(f)["AppState"]
                 g = game.Game(self, data["name"], data["appid"], self.get_game_illustraton_path(data["appid"]))
                 games.append(g)
-        
+        if self.show_non_steam_games:
+            games += self.get_non_steam_games()
         return games
     
     def run_game(self,id):
+        if self.show_non_steam_games and str(id).startswith("n"):
+            raw.exec_path(id.removeprefix("n"))
+            return
         system = config.get_system()
         if system == "Windows":
             command = f"start steam://rungameid/{id}"

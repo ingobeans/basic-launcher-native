@@ -5,6 +5,9 @@ from PIL import Image
 if config.get_system() == "Windows":
     import win32api, win32ui, win32gui, win32con
 
+def exec_path(path):
+    subprocess.Popen([path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=os.path.dirname(path))
+
 class Raw(source.Source):
     name:str = "raw"
     games_registry = {}
@@ -65,5 +68,4 @@ class Raw(source.Source):
     
     def run_game(self,id):
         path = self.games_registry[id]
-        
-        subprocess.Popen([path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=os.path.dirname(path))
+        exec_path(path)
