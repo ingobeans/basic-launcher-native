@@ -194,6 +194,12 @@ class Window:
     def calc_y_height_of_card(self,card_index)->int:
         return int(card_index/self.calc_buttons_per_row()+1)*(self.card_height+self.card_gap_y)
     
+    def update_cursor(self):
+        if self.button_at(pygame.mouse.get_pos()):
+            pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_HAND))
+        else:
+            pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_ARROW))
+
     def run(self):
         self.update_buttons()
         self.running = True
@@ -229,13 +235,11 @@ class Window:
                             game.parent_source.run_game(game.id)
                     self.selector_active = True
                 elif event.type == pygame.MOUSEMOTION:
-                    if self.button_at(event.pos):
-                        pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_HAND))
-                    else:
-                        pygame.mouse.set_cursor(pygame.Cursor(pygame.SYSTEM_CURSOR_ARROW))
+                    self.update_cursor()
                 elif event.type == pygame.MOUSEWHEEL:
                     self.scroll_position += self.scroll_amount * event.y
                     self.scroll_position = min(0,max(self.scroll_position, self.screen.height-self.calc_y_height_of_card(len(self.buttons))-self.padding_y))
+                    self.update_cursor()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.selector_active = False
