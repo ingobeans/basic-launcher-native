@@ -47,7 +47,10 @@ class Card:
         self.position = position
         self.size = size
         self.game = game
-        self.illustration = pygame.transform.smoothscale(load_illustration(game.illustration_path).convert_alpha(),(size[0], 225))
+        illustration_raw = load_illustration(game.illustration_path)
+        self.illustration = None
+        if illustration_raw:
+            self.illustration = pygame.transform.smoothscale(illustration_raw.convert_alpha(),(size[0], 225))
 
         self.surface = self.generate_surface(False,game,size,card_color,corners_image,card_font)
         self.surface_glow = self.generate_surface(True,game,size,card_color,corners_image,card_font)
