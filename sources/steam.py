@@ -47,9 +47,27 @@ class Steam(source.Source):
             return None
         
         library_path = os.path.join(self.path, "appcache", "librarycache")
-        illustration_path = os.path.join(library_path, f"{game_id}_library_600x900.jpg")
+
+        # check default standard path for artwork
+        illustration_path = os.path.join(library_path, game_id, "library_600x900.jpg")
         if os.path.isfile(illustration_path):
             return illustration_path
+        else:
+            # check old path for artworks
+            illustration_path = os.path.join(library_path, f"{game_id}_library_600x900.jpg")
+            if os.path.isfile(illustration_path):
+                return illustration_path
+            else:
+                # check if artwork is contained in a subdirectory (like rocket league does for some reason)
+                illustration_base_dir = os.path.join(library_path, game_id)
+                if os.path.isdir(illustration_base_dir):
+                    for item in os.listdir(illustration_base_dir):
+                        item_path = os.path.join(illustration_base_dir,item)
+                        if os.path.isdir(item_path):
+                            if "library_600x900.jpg" in os.listdir(item_path):
+                                return os.path.join(item_path,"library_600x900.jpg")
+                    pass
+                    
         return None
     
     def get_non_steam_illustration_path(self,game_id,grids_path):
